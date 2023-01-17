@@ -11,7 +11,7 @@ LIBDIR := lib
 PARSERDIR := parser
 
 CC=gcc
-CFLAGS +=-Wextra -Wall -pedantic -fPIE -O2 -Wno-long-long -Werror -DACVP_PARSER_IUT=\"$(firstword $(MAKECMDGOALS))\" -g -std=c11 -Wno-variadic-macros
+CFLAGS +=-Wextra -Wall -pedantic -fPIE -O2 -Wno-long-long -DACVP_PARSER_IUT=\"$(firstword $(MAKECMDGOALS))\" -g -std=c11 -Wno-variadic-macros
 
 ifeq (/etc/lsb-release,$(wildcard /etc/lsb-release))
 OS := $(shell cat /etc/lsb-release | grep DISTRIB_ID | grep -o Ubuntu)
@@ -270,6 +270,21 @@ ifeq (apple-boringssl,$(firstword $(MAKECMDGOALS)))
 	LDFLAGS += $(BORINGSSL_LIB_A) -lpthread
 endif
 
+################## CONFIGURE BACKEND AWS-LC ########
+
+AWSLC_LIB_DIR_A := /Users/wbyang/Documents/aws-lc/build/ssl
+AWSLC_LIB_A := libssl.dylib
+AWSLC_LIB_DIR_B := /Users/wbyang/Documents/aws-lc/build/crypto
+AWSLC_LIB_B := crypto
+
+ifeq (awslc,$(firstword $(MAKECMDGOALS)))
+	C_SRCS += backends/backend_awslc.c
+	CFLAGS :=-Wextra -Wall -O2 -Wno-long-long -DACVP_PARSER_IUT=\"$(firstword $(MAKECMDGOALS))\" -Wno-gnu-zero-variadic-macro-arguments -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fwrapv --param ssp-buffer-size=4
+	INCLUDE_DIRS += /Users/wbyang/Documents/aws-lc/include \
+			/Users/wbyang/Documents/aws-lc
+	LDFLAGS := -L$(AWSLC_LIB_DIR_B) -l$(AWSLC_LIB_B)
+endif
+
 ################## CONFIGURE BACKEND Botan ########
 
 ifeq (botan,$(firstword $(MAKECMDGOALS)))
@@ -359,10 +374,10 @@ LDFLAGS += $(foreach library,$(LIBRARIES),-l$(library))
 analyze_srcs = $(filter %.c, $(sort $(C_SRCS)))
 analyze_plists = $(analyze_srcs:%.c=%.plist)
 
-.PHONY: clean distclean acvp2cavs cavs2acvp kcapi kcapi_lrng libkcapi libgcrypt nettle gnutls openssl nss commoncrypto corecrypto openssh strongswan libreswan acvpproxy libsodium libnacl boringssl botan bouncycastle libica cpacf lrng jent leancrypto shlib shlib_static default files
+.PHONY: clean distclean acvp2cavs cavs2acvp kcapi kcapi_lrng libkcapi libgcrypt nettle gnutls openssl nss commoncrypto corecrypto openssh strongswan libreswan acvpproxy libsodium libnacl boringssl awslc botan bouncycastle libica cpacf lrng jent leancrypto shlib shlib_static default files
 
 default:
-	$(error "Usage: make <acvp2cavs|cavs2acvp|kcapi|kcapi_lrng|libkcapi|libgcrypt|nettle|gnutls|openssl|nss|commoncrypto|corecrypto-dispatch|corecypto|openssh|strongswan|libreswan|acvpproxy|libsodium|libnacl|boringssl|apple-boringssl|botan|bouncycastle|libica|cpacf|lrng|jent|leancrypto|shlib|shlib_static>")
+	$(error "Usage: make <acvp2cavs|cavs2acvp|kcapi|kcapi_lrng|libkcapi|libgcrypt|nettle|gnutls|openssl|nss|commoncrypto|corecrypto-dispatch|corecypto|openssh|strongswan|libreswan|acvpproxy|libsodium|libnacl|boringssl|apple-boringssl|awslc|botan|bouncycastle|libica|cpacf|lrng|jent|leancrypto|shlib|shlib_static>")
 
 acvp2cavs: $(NAME)
 cavs2acvp: $(NAME)
@@ -384,6 +399,7 @@ acvpproxy: $(NAME)
 libsodium: $(NAME)
 libnacl: $(NAME)
 boringssl: $(NAME)
+awslc: ${NAME}
 apple-boringssl: $(NAME)
 botan: $(NAME)
 libica: $(NAME)
