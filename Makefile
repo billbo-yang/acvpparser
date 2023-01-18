@@ -272,14 +272,15 @@ endif
 
 ################## CONFIGURE BACKEND AWS-LC ########
 
-AWSLC_LIB_A := /Users/wbyang/Documents/aws-lc/build/crypto/libcrypto.a
+AWSLC_LIB_A := /Users/wbyang/Documents/aws-lc/build/crypto
 
 ifeq (awslc,$(firstword $(MAKECMDGOALS)))
 	C_SRCS += backends/backend_awslc.c
 	CFLAGS +=-Wextra -Wall -O2 -Wno-long-long -DACVP_PARSER_IUT=\"$(firstword $(MAKECMDGOALS))\" -Wno-gnu-zero-variadic-macro-arguments -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fwrapv --param ssp-buffer-size=4
 	INCLUDE_DIRS += /Users/wbyang/Documents/aws-lc/include \
 			/Users/wbyang/Documents/aws-lc
-	LDFLAGS := $(AWSLC_LIB_A) -lpthread
+#	LDFLAGS := $(AWSLC_LIB_A) -lpthread
+	LDFLAGS := -L${AWSLC_LIB_A} -Xlinker -rpath -Xlinker ${AWSLC_LIB_A} -lcrypto
 endif
 
 ################## CONFIGURE BACKEND Botan ########
