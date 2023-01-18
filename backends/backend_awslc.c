@@ -51,7 +51,35 @@ static int awslc_sha_generate(struct sha_data *data, flags_t parsed_flags)
 	// out:
 	// 	return ret;
 
+	const EVP_MD *md = NULL;
+	int mdlen;
+	unsigned int maclen;
+	int ret;
+
+
+	(void)parsed_flags;
+
+	CKINT(awslc_get_hash(data, &md, &mdlen));
+
+	maclen = (unsigned int) mdlen;
+
+	CKINT_LOG(alloc_buf((size_t)mdlen, &data->mac),
+			"SHA buffer cannot be allocated\n");
+
+	// logger_binary(LOGGER_DEBUG, data->msg.buf, data->msg.len, "msg\n");
+	// logger_binary(LOGGER_DEBUG, data->mac.buf, data->mac.len, "mac\n");
+
+	CKINT_O_LOG(EVP_Digest(data->msg.buf, data->msg.len, data->mac.buf, &maclen, md, NULL),
+		"EVP_Digest() failed\n");
+
+	ret = 0;
+
+out:
+	return ret;
+
+// 	EVP_MD_CTX *ctx = NULL;
 // 	const EVP_MD *md = NULL;
+// 	unsigned int maclen = 0;
 // 	int mdlen;
 // 	int ret;
 
@@ -62,54 +90,30 @@ static int awslc_sha_generate(struct sha_data *data, flags_t parsed_flags)
 // 	CKINT_LOG(alloc_buf((size_t)mdlen, &data->mac),
 // 		  "SHA buffer cannot be allocated\n");
 
-// 	// logger_binary(LOGGER_DEBUG, data->msg.buf, data->msg.len, "msg\n");
-// 	// logger_binary(LOGGER_DEBUG, data->mac.buf, data->mac.len, "mac\n");
+// 	ctx = EVP_MD_CTX_create();
+// 	CKNULL_LOG(ctx, -ENOMEM, "MD context not created\n");
+// 	logger_binary(LOGGER_DEBUG, data->msg.buf, data->msg.len, "msg");
 
-// 	CKINT_O_LOG(EVP_Digest(data->msg.buf, data->msg.len, data->mac.buf, (unsigned int*) data->mac.len, md, NULL),
-// 		"EVP_Digest() failed\n");
+// 	CKINT_O_LOG(EVP_DigestInit(ctx, md), "EVP_DigestInit() failed %s\n",
+// 		    ERR_error_string(ERR_get_error(), NULL));
+
+// 	CKINT_O_LOG(EVP_DigestUpdate(ctx, data->msg.buf, data->msg.len),
+// 		    "EVP_DigestUpdate() failed\n");
+
+// 	CKINT_O_LOG(EVP_DigestFinal(ctx, data->mac.buf,
+// 					&maclen),
+// 			"EVP_DigestFinal() failed\n");
+// 	data->mac.len = (size_t)maclen;
+
+// 	logger_binary(LOGGER_DEBUG, data->mac.buf, data->mac.len, "hash");
 
 // 	ret = 0;
 
 // out:
+// 	if (ctx)
+// 		EVP_MD_CTX_destroy(ctx);
+
 // 	return ret;
-
-	EVP_MD_CTX *ctx = NULL;
-	const EVP_MD *md = NULL;
-	unsigned int maclen = 0;
-	int mdlen;
-	int ret;
-
-	(void)parsed_flags;
-
-	CKINT(awslc_get_hash(data, &md, &mdlen));
-
-	CKINT_LOG(alloc_buf((size_t)mdlen, &data->mac),
-		  "SHA buffer cannot be allocated\n");
-
-	ctx = EVP_MD_CTX_create();
-	CKNULL_LOG(ctx, -ENOMEM, "MD context not created\n");
-	logger_binary(LOGGER_DEBUG, data->msg.buf, data->msg.len, "msg");
-
-	CKINT_O_LOG(EVP_DigestInit(ctx, md), "EVP_DigestInit() failed %s\n",
-		    ERR_error_string(ERR_get_error(), NULL));
-
-	CKINT_O_LOG(EVP_DigestUpdate(ctx, data->msg.buf, data->msg.len),
-		    "EVP_DigestUpdate() failed\n");
-
-	CKINT_O_LOG(EVP_DigestFinal(ctx, data->mac.buf,
-					&maclen),
-			"EVP_DigestFinal() failed\n");
-	data->mac.len = (size_t)maclen;
-
-	logger_binary(LOGGER_DEBUG, data->mac.buf, data->mac.len, "hash");
-
-	ret = 0;
-
-out:
-	if (ctx)
-		EVP_MD_CTX_destroy(ctx);
-
-	return ret;
 }
 
 static struct sha_backend awslc_sha =

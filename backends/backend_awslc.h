@@ -15,9 +15,9 @@ extern "C"
 #include <string.h>
 #include <errno.h>
 
-#include <openssl/digest.h>
-#include <openssl/sha.h>
-#include <openssl/err.h>
+#include "openssl/digest.h"
+#include "openssl/sha.h"
+#include "openssl/err.h"
 
 #include "logger.h"
 
