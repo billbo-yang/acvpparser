@@ -13,7 +13,7 @@ static int libgcrypt_sha_generate(struct sha_data *data, flags_t parsed_flags)
 {
     gcry_error_t err = 0;
 	gcry_md_hd_t hd;
-
+    unsigned char *buffer;
     size_t outputlen = 20;
 
     (void)parsed_flags;
@@ -27,11 +27,13 @@ static int libgcrypt_sha_generate(struct sha_data *data, flags_t parsed_flags)
 
     gcry_md_write(hd, data->msg.buf, data->msg.len);
 
-    data->mac.buf = gcry_md_read(hd, GCRY_MD_SHA1);
-
-    gcry_md_close(hd);
+    // Due to the how libgcrypt and the parser each work we need to memcpy the data from the buffer into the data object or else we get invalid pointer error when freeing
+    buffer = gcry_md_read(hd, GCRY_MD_SHA1);
+    memcpy(data->mac.buf, buffer, outputlen);
 
     logger_binary(LOGGER_DEBUG, data->mac.buf, data->mac.len, "mac\n");
+
+    gcry_md_close(hd);
 
     return 0;
 }
