@@ -120,7 +120,7 @@ GNUTLS_INTERNAL_HEADERS = backend_interfaces/gnutls/
 
 ifeq (gnutls,$(firstword $(MAKECMDGOALS)))
 	C_SRCS += backends/backend_gnutls.c
-	INCLUDE_DIRS += $(GNUTLS_INTERNAL_HEADERS)
+#	INCLUDE_DIRS += $(GNUTLS_INTERNAL_HEADERS)
 	LIBRARIES += gnutls hogweed nettle gmp
 
 endif
