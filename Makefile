@@ -209,15 +209,19 @@ endif
 ################## CONFIGURE BACKEND NSS ################
 
 ifeq (nss,$(firstword $(MAKECMDGOALS)))
-	C_SRCS += backends/backend_pkcs11.c backends/backend_nss.c $(wildcard backend_interfaces/pkcs11/*.c)
-	CFLAGS += -DENABLE_NSS=1
-	# This is needed for PKCS 11 backend
-	LIBRARIES += dl
-	INCLUDE_DIRS += /usr/include/nss3			\
+#	C_SRCS += backends/backend_pkcs11.c backends/backend_nss.c $(wildcard backend_interfaces/pkcs11/*.c)
+#	CFLAGS += -DENABLE_NSS=1
+# 	This is needed for PKCS 11 backend
+#	LIBRARIES += dl
+#	INCLUDE_DIRS += /usr/include/nss3			\
 			/usr/include/nspr4			\
 			backend_interfaces/pkcs11
-	# This is for the NSS backend
-	LIBRARIES += freebl nss3 softokn3 plc4 nspr4 nssutil3
+# 	This is for the NSS backend
+#	LIBRARIES += freebl nss3 softokn3 plc4 nspr4 nssutil3
+C_SRCS += backends/backend_nss.c
+CFLAGS += -DENABLE_NSS=1
+INCLUDE_DIRS += /usr/include/nss /usr/include/nspr
+LIBRARIES += nss3 plc4 nspr4 nssutil3
 endif
 
 ######################################################
